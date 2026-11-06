@@ -22,23 +22,9 @@ export default function DetectedTextCard({
   };
 
   return (
-    <div style={{
-      backgroundColor: 'var(--bg-card)',
-      borderRadius: 'var(--radius-lg)',
-      border: '1px solid var(--border-subtle)',
-      display: 'flex',
-      flexDirection: 'column',
-      padding: '24px',
-      boxShadow: 'var(--shadow-card)',
-      position: 'relative'
-    }}>
+    <article className="detected-text-card">
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '20px'
-      }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Terminal size={18} color="var(--text-secondary)" />
           <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -46,100 +32,46 @@ export default function DetectedTextCard({
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative' }}>
           <button
+            type="button"
+            className="btn-icon"
             onClick={handleCopy}
             disabled={!detectedText}
-            title={copied ? "Copied to clipboard!" : "Copy detected text"}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: copied ? 'var(--accent-green)' : 'var(--text-secondary)',
-              cursor: detectedText ? 'pointer' : 'not-allowed',
-              padding: '6px',
-              borderRadius: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: detectedText ? 1 : 0.4,
-              transition: 'all 0.2s ease'
-            }}
+            title={copied ? 'Copied to clipboard!' : 'Copy detected text'}
+            style={{ color: copied ? 'var(--accent-green)' : undefined }}
           >
             {copied ? <Check size={16} /> : <Copy size={16} />}
           </button>
 
           <button
+            type="button"
+            className="btn-icon"
             onClick={() => setShowMenu(!showMenu)}
             title="More options"
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              padding: '6px',
-              borderRadius: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'color 0.2s'
-            }}
           >
             <MoreHorizontal size={18} />
           </button>
 
           {showMenu && (
-            <div style={{
-              position: 'absolute',
-              top: '56px',
-              right: '24px',
-              backgroundColor: 'var(--bg-card-subtle)',
-              border: '1px solid var(--border-strong)',
-              borderRadius: 'var(--radius-md)',
-              padding: '6px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '4px',
-              zIndex: 30,
-              minWidth: '150px',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)'
-            }}>
+            <div className="detected-text-menu-dropdown">
               <button
+                type="button"
+                className="menu-dropdown-item"
                 onClick={() => {
                   setDetectedText(detectedText.toUpperCase());
                   setShowMenu(false);
                 }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  textAlign: 'left',
-                  padding: '8px 12px',
-                  fontSize: '12px',
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer',
-                  borderRadius: '4px'
-                }}
-                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
-                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 Uppercase Text
               </button>
               <button
+                type="button"
+                className="menu-dropdown-item danger"
                 onClick={() => {
                   onClearText();
                   setShowMenu(false);
                 }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  textAlign: 'left',
-                  padding: '8px 12px',
-                  fontSize: '12px',
-                  color: '#f87171',
-                  cursor: 'pointer',
-                  borderRadius: '4px'
-                }}
-                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
-                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 Reset & Clear
               </button>
@@ -149,12 +81,7 @@ export default function DetectedTextCard({
       </div>
 
       {/* Status indicator */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '16px'
-      }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -164,12 +91,15 @@ export default function DetectedTextCard({
           letterSpacing: '0.08em',
           color: isDetecting ? 'var(--accent-cyan)' : (detectedText ? 'var(--accent-green)' : 'var(--text-muted)')
         }}>
-          <div style={{
-            width: '6px',
-            height: '6px',
-            borderRadius: '50%',
-            backgroundColor: isDetecting ? 'var(--accent-cyan)' : (detectedText ? 'var(--accent-green)' : 'var(--text-muted)')
-          }} className={isDetecting ? 'animate-pulse' : ''} />
+          <div
+            style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              backgroundColor: isDetecting ? 'var(--accent-cyan)' : (detectedText ? 'var(--accent-green)' : 'var(--text-muted)')
+            }}
+            className={isDetecting ? 'animate-pulse' : ''}
+          />
           <span>
             {isDetecting
               ? `TRANSLATED: "${activeTypingSign || 'SIGN'}"`
@@ -178,19 +108,8 @@ export default function DetectedTextCard({
         </div>
 
         {isDetecting && (
-          <span style={{
-            fontSize: '11px',
-            fontFamily: 'var(--font-mono)',
-            color: 'var(--accent-cyan)',
-            backgroundColor: 'rgba(6, 182, 212, 0.15)',
-            border: '1px solid rgba(6, 182, 212, 0.3)',
-            padding: '2px 8px',
-            borderRadius: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px'
-          }}>
-            <span className="animate-pulse">●</span> Detected Live
+          <span className="hud-tag" style={{ color: 'var(--accent-cyan)', borderColor: 'rgba(6, 182, 212, 0.3)', background: 'rgba(6, 182, 212, 0.15)' }}>
+            ● Detected Live
           </span>
         )}
       </div>
@@ -199,20 +118,10 @@ export default function DetectedTextCard({
       <div style={{ minHeight: '140px', display: 'flex', flexDirection: 'column' }}>
         {!detectedText ? (
           <div>
-            <h2 style={{
-              fontSize: '24px',
-              fontWeight: 400,
-              color: 'var(--text-primary)',
-              lineHeight: 1.3,
-              marginBottom: '10px'
-            }}>
+            <h2 style={{ fontSize: '24px', fontWeight: 400, color: 'var(--text-primary)', lineHeight: 1.3, marginBottom: '10px' }}>
               Your words will appear here.
             </h2>
-            <p style={{
-              fontSize: '14px',
-              color: 'var(--text-secondary)',
-              lineHeight: 1.5
-            }}>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               Signs become text in real time. Review or edit your message before you speak it aloud.
             </p>
           </div>
@@ -236,32 +145,13 @@ export default function DetectedTextCard({
                 outline: 'none',
                 fontFamily: 'inherit'
               }}
-              onFocus={e => e.currentTarget.style.borderColor = 'var(--border-focus)'}
-              onBlur={e => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
             />
 
-            {/* Gesture Tags Trail */}
             {recentSigns && recentSigns.length > 0 && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                marginTop: '10px',
-                flexWrap: 'wrap'
-              }}>
+              <div className="recent-signs-row">
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Detected signs:</span>
                 {recentSigns.map((sign, idx) => (
-                  <span
-                    key={idx}
-                    style={{
-                      fontSize: '11px',
-                      padding: '2px 8px',
-                      borderRadius: '4px',
-                      backgroundColor: 'rgba(6, 182, 212, 0.1)',
-                      border: '1px solid rgba(6, 182, 212, 0.25)',
-                      color: 'var(--accent-cyan)'
-                    }}
-                  >
+                  <span key={idx} className="recent-sign-chip">
                     {sign}
                   </span>
                 ))}
@@ -271,50 +161,23 @@ export default function DetectedTextCard({
         )}
       </div>
 
-      {/* Footer info & Clear button */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginTop: '16px',
-        paddingTop: '16px',
-        borderTop: '1px solid var(--border-subtle)'
-      }}>
-        <div style={{
-          fontSize: '11px',
-          fontWeight: 600,
-          letterSpacing: '0.08em',
-          color: 'var(--text-muted)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px'
-        }}>
+      {/* Footer Info & Clear */}
+      <div className="detected-text-counter-row" style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
+        <div style={{ fontWeight: 600, letterSpacing: '0.08em', color: 'var(--text-muted)', display: 'flex', gap: '6px' }}>
           <span>{wordCount}</span>
           <span>{wordCount === 1 ? 'WORD' : 'WORDS'}</span>
         </div>
 
         <button
+          type="button"
+          className="btn-icon"
           onClick={onClearText}
           disabled={!detectedText}
-          style={{
-            background: 'none',
-            border: 'none',
-            fontSize: '13px',
-            color: detectedText ? 'var(--text-secondary)' : 'var(--text-muted)',
-            cursor: detectedText ? 'pointer' : 'default',
-            padding: '2px 6px',
-            transition: 'color 0.2s'
-          }}
-          onMouseEnter={e => {
-            if (detectedText) e.currentTarget.style.color = '#ffffff';
-          }}
-          onMouseLeave={e => {
-            if (detectedText) e.currentTarget.style.color = 'var(--text-secondary)';
-          }}
+          style={{ fontSize: '13px' }}
         >
           Clear text
         </button>
       </div>
-    </div>
+    </article>
   );
 }

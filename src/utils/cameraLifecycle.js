@@ -44,38 +44,50 @@ export function stopMediaStream(stream) {
   }
 }
 
-export function waitForVideoReady(video, timeoutMs = 1500) {
+export function waitForVideoReady(video, timeoutMs = 2500) {
   return new Promise((resolve, reject) => {
     if (!video) {
       reject(new Error('Video element is not available.'));
       return;
     }
 
-    if (video.readyState >= 2) {
+    if (video.readyState >= 1) {
       resolve(video);
       return;
     }
 
-    const timer = setTimeout(() => {
-      cleanup();
-      reject(new Error('Camera video did not initialize in time.'));
-    }, timeoutMs);
-
     const cleanup = () => {
       clearTimeout(timer);
-      video.removeEventListener('loadeddata', onReady);
-      video.removeEventListener('loadedmetadata', onReady);
+      if (typeof video.removeEventListener === 'function') {
+        video.removeEventListener('loadeddata', onReady);
+        video.removeEventListener('loadedmetadata', onReady);
+        video.removeEventListener('canplay', onReady);
+        video.removeEventListener('playing', onReady);
+      }
     };
 
+    const timer = setTimeout(() => {
+      cleanup();
+      if (video && video.readyState >= 1) {
+        resolve(video);
+      } else {
+        reject(new Error('Camera video did not initialize in time.'));
+      }
+    }, timeoutMs);
+
     const onReady = () => {
-      if (video.readyState >= 2) {
+      if (video.readyState >= 1) {
         cleanup();
         resolve(video);
       }
     };
 
-    video.addEventListener('loadeddata', onReady, { once: true });
-    video.addEventListener('loadedmetadata', onReady, { once: true });
+    if (typeof video.addEventListener === 'function') {
+      video.addEventListener('loadedmetadata', onReady);
+      video.addEventListener('loadeddata', onReady);
+      video.addEventListener('canplay', onReady);
+      video.addEventListener('playing', onReady);
+    }
   });
 }
 

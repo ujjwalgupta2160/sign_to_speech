@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Sliders, Eye, Zap, Volume2, Shield } from 'lucide-react';
+import { X, Sliders, Shield } from 'lucide-react';
 
 export default function SettingsModal({
   isOpen,
@@ -14,25 +14,12 @@ export default function SettingsModal({
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
+        className="modal-dialog"
+        style={{ maxWidth: '500px' }}
         onClick={e => e.stopPropagation()}
-        style={{
-          backgroundColor: 'var(--bg-card)',
-          borderRadius: 'var(--radius-xl)',
-          border: '1px solid var(--border-strong)',
-          maxWidth: '500px',
-          width: '100%',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8)',
-          overflow: 'hidden'
-        }}
       >
         {/* Header */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '20px 24px',
-          borderBottom: '1px solid var(--border-subtle)'
-        }}>
+        <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Sliders size={18} color="var(--accent-cyan)" />
             <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -40,32 +27,18 @@ export default function SettingsModal({
             </h2>
           </div>
           <button
+            type="button"
+            className="btn-icon"
             onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              padding: '6px',
-              borderRadius: '6px'
-            }}
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Content */}
-        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="modal-body">
           {/* Mirror mode toggle */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '14px 16px',
-            backgroundColor: 'var(--bg-card-subtle)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-subtle)'
-          }}>
+          <div className="settings-toggle-row">
             <div>
               <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>
                 Mirror Video Feed
@@ -75,37 +48,19 @@ export default function SettingsModal({
               </div>
             </div>
             <div
+              role="switch"
+              aria-checked={mirrorMode}
+              tabIndex={0}
+              className={`toggle-switch ${mirrorMode ? 'active' : ''}`}
               onClick={() => setMirrorMode(!mirrorMode)}
-              style={{
-                width: '40px',
-                height: '24px',
-                borderRadius: '999px',
-                backgroundColor: mirrorMode ? '#ffffff' : 'rgba(255, 255, 255, 0.1)',
-                position: 'relative',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
+              onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') setMirrorMode(!mirrorMode); }}
             >
-              <div style={{
-                width: '18px',
-                height: '18px',
-                borderRadius: '50%',
-                backgroundColor: mirrorMode ? '#000000' : '#8e93a0',
-                position: 'absolute',
-                top: '3px',
-                left: mirrorMode ? '19px' : '3px',
-                transition: 'left 0.2s'
-              }} />
+              <div className="toggle-knob" />
             </div>
           </div>
 
           {/* Sensitivity */}
-          <div style={{
-            padding: '14px 16px',
-            backgroundColor: 'var(--bg-card-subtle)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-subtle)'
-          }}>
+          <div style={{ padding: '14px 16px', backgroundColor: 'var(--bg-card-subtle)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
               <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>
                 Detection Sensitivity
@@ -120,6 +75,7 @@ export default function SettingsModal({
               max="95"
               value={sensitivity}
               onChange={(e) => setSensitivity(parseInt(e.target.value))}
+              aria-label="Detection Sensitivity"
               style={{ width: '100%', accentColor: '#ffffff', cursor: 'pointer' }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -148,25 +104,12 @@ export default function SettingsModal({
         </div>
 
         {/* Footer */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          padding: '16px 24px',
-          borderTop: '1px solid var(--border-subtle)',
-          backgroundColor: 'var(--bg-card)'
-        }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px 24px', borderTop: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-card)' }}>
           <button
+            type="button"
+            className="pill-tab-btn active"
             onClick={onClose}
-            style={{
-              padding: '8px 20px',
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: '#ffffff',
-              color: '#000000',
-              border: 'none',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
+            style={{ padding: '8px 20px', fontSize: '13px' }}
           >
             Done
           </button>

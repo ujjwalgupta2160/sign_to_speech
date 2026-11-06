@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import './App.css';
 import Navbar from './components/Navbar';
 import HeaderWorkspace from './components/HeaderWorkspace';
 import SignInputCard from './components/SignInputCard';
@@ -57,8 +58,6 @@ export default function App() {
       timer = setInterval(() => {
         setSessionTime(prev => prev + 1);
       }, 1000);
-    } else {
-      if (timer) clearInterval(timer);
     }
     return () => {
       if (timer) clearInterval(timer);
@@ -69,7 +68,7 @@ export default function App() {
   const [activeTypingSign, setActiveTypingSign] = useState(null);
 
   // Handler when a sign gesture is recognized
-  const handleGestureDetected = (sign) => {
+  const handleGestureDetected = useCallback((sign) => {
     setIsDetecting(true);
     setActiveTypingSign(sign.name);
 
@@ -78,12 +77,22 @@ export default function App() {
       setActiveTypingSign(null);
     }, 1200);
 
-    setSignsDetectedCount(prev => prev + 1);
+    setSignsDetectedCount(prev => {
+      const nextCount = prev + 1;
+      if (nextCount % 5 === 0) {
+        confetti({
+          particleCount: 25,
+          spread: 45,
+          origin: { y: 0.7 },
+          colors: ['#06b6d4', '#10b981', '#ffffff']
+        });
+      }
+      return nextCount;
+    });
+
     setRecentSigns(prev => [sign.name, ...prev.filter(s => s !== sign.name)].slice(0, 7));
 
-    // Handle single letter fingerspelling vs numbers vs word signs
     if (sign.isLetter || sign.type === 'letter') {
-      // If it's just a letter, accurately write the letter!
       const char = (sign.letter || sign.text || sign.phrase || '').toUpperCase();
       setDetectedText(prev => prev + char);
     } else if (sign.isNumber || sign.type === 'number') {
@@ -93,12 +102,10 @@ export default function App() {
         return clean ? `${clean} ${num}` : num;
       });
     } else {
-      // If it's a sign of a word, accurately write the word!
       const word = sign.text || sign.phrase || sign.name;
       setDetectedText(prev => {
         const clean = prev.trim();
         if (!clean) return word;
-        // Prevent duplicate appending if the word is already the latest word
         if (clean.endsWith(word)) return clean;
         return `${clean} ${word}`;
       });
@@ -124,39 +131,30 @@ export default function App() {
       },
       ...prev
     ]);
+  }, [autoSpeak]);
 
-    if ((signsDetectedCount + 1) % 5 === 0) {
-      confetti({
-        particleCount: 25,
-        spread: 45,
-        origin: { y: 0.7 },
-        colors: ['#06b6d4', '#10b981', '#ffffff']
-      });
-    }
-  };
-
-  const handleFingerspellLetter = (char) => {
+  const handleFingerspellLetter = useCallback((char) => {
     setDetectedText(prev => prev + char);
     setSignsDetectedCount(c => c + 1);
-  };
+  }, []);
 
-  const handleFingerspellSpace = () => {
+  const handleFingerspellSpace = useCallback(() => {
     setDetectedText(prev => prev + ' ');
-  };
+  }, []);
 
-  const handleFingerspellBackspace = () => {
+  const handleFingerspellBackspace = useCallback(() => {
     setDetectedText(prev => prev.slice(0, -1));
-  };
+  }, []);
 
-  const handleStartSession = () => {
+  const handleStartSession = useCallback(() => {
     setIsSessionActive(true);
-  };
+  }, []);
 
-  const handleStopSession = () => {
+  const handleStopSession = useCallback(() => {
     setIsSessionActive(false);
-  };
+  }, []);
 
-  const handleResetSession = () => {
+  const handleResetSession = useCallback(() => {
     setIsSessionActive(false);
     setSessionTime(0);
     setDetectedText('');
@@ -164,16 +162,16 @@ export default function App() {
     setSignsDetectedCount(0);
     setSpokenMessagesCount(0);
     uniSignSpeechConverter.stop();
-  };
+  }, []);
 
-  const handleClearText = () => {
+  const handleClearText = useCallback(() => {
     setDetectedText('');
     setRecentSigns([]);
     uniSignSpeechConverter.stop();
-  };
+  }, []);
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-main)' }}>
+    <div className="app-shell">
       {/* Top Navbar */}
       <Navbar
         activeTab={activeTab}
@@ -184,49 +182,37 @@ export default function App() {
       />
 
       {/* Main Workspace Area */}
-      <main style={{
-        maxWidth: '1440px',
-        width: '100%',
-        margin: '0 auto',
-        padding: '24px 32px 20px 32px',
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
-        {/* Workspace Title & Live Session Timer Pill */}
+      <main className="app-main-workspace">
         <HeaderWorkspace
           isSessionActive={isSessionActive}
           sessionTime={sessionTime}
         />
 
-        {/* 2-Column Main Workspace */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1.45fr) minmax(0, 1fr)',
-          gap: '20px',
-          alignItems: 'start'
-        }}>
+        {/* 2-Column Responsive Workspace Grid */}
+        <div className="workspace-grid">
           {/* Left Column: Sign input / Camera feed */}
-          <SignInputCard
-            signLanguage={signLanguage}
-            setSignLanguage={setSignLanguage}
-            isSessionActive={isSessionActive}
-            onStartSession={handleStartSession}
-            onStopSession={handleStopSession}
-            onResetSession={handleResetSession}
-            onGestureDetected={handleGestureDetected}
-            mirrorMode={mirrorMode}
-            setMirrorMode={setMirrorMode}
-            inputMode={inputMode}
-            setInputMode={setInputMode}
-            onFingerspellLetter={handleFingerspellLetter}
-            onFingerspellSpace={handleFingerspellSpace}
-            onFingerspellBackspace={handleFingerspellBackspace}
-            sensitivity={sensitivity}
-          />
+          <section className="workspace-col-left" aria-label="Sign Input Column">
+            <SignInputCard
+              signLanguage={signLanguage}
+              setSignLanguage={setSignLanguage}
+              isSessionActive={isSessionActive}
+              onStartSession={handleStartSession}
+              onStopSession={handleStopSession}
+              onResetSession={handleResetSession}
+              onGestureDetected={handleGestureDetected}
+              mirrorMode={mirrorMode}
+              setMirrorMode={setMirrorMode}
+              inputMode={inputMode}
+              setInputMode={setInputMode}
+              onFingerspellLetter={handleFingerspellLetter}
+              onFingerspellSpace={handleFingerspellSpace}
+              onFingerspellBackspace={handleFingerspellBackspace}
+              sensitivity={sensitivity}
+            />
+          </section>
 
           {/* Right Column: Detected Text & Natural Speech */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <section className="workspace-col-right" aria-label="Output and Speech Column">
             <DetectedTextCard
               detectedText={detectedText}
               setDetectedText={setDetectedText}
@@ -242,10 +228,10 @@ export default function App() {
               setAutoSpeak={setAutoSpeak}
               onSpeechCompleted={() => setSpokenMessagesCount(c => c + 1)}
             />
-          </div>
+          </section>
         </div>
 
-        {/* Bottom Metrics & Conversation Guidance */}
+        {/* Bottom Metrics & Tips */}
         <BottomMetrics
           signsDetectedCount={signsDetectedCount}
           spokenMessagesCount={spokenMessagesCount}

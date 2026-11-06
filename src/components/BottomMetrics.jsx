@@ -5,146 +5,72 @@ export default function BottomMetrics({ signsDetectedCount, spokenMessagesCount 
   const padZero = (num) => String(num).padStart(2, '0');
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: '260px 1fr',
-      gap: '16px',
-      marginTop: '24px',
-      marginBottom: '32px'
-    }}>
-      {/* THIS SESSION Metrics Card */}
-      <div style={{
-        backgroundColor: 'var(--bg-card)',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--border-subtle)',
-        padding: '24px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        boxShadow: 'var(--shadow-card)'
-      }}>
-        <div style={{
-          fontSize: '11px',
-          fontWeight: 600,
-          letterSpacing: '0.08em',
-          color: 'var(--text-muted)',
-          marginBottom: '16px'
-        }}>
+    <section className="bottom-metrics-grid" aria-label="Session Metrics & Tips">
+      {/* Session Metrics Card */}
+      <div className="metrics-card-session">
+        <div className="metrics-header-label">
           THIS SESSION
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '32px' }}>
+        <div className="metrics-numbers-row">
           <div>
-            <div style={{
-              fontSize: '36px',
-              fontWeight: 400,
-              fontFamily: 'var(--font-mono)',
-              color: 'var(--text-primary)',
-              lineHeight: 1
-            }}>
+            <div className="metric-number">
               {padZero(signsDetectedCount)}
             </div>
-            <div style={{
-              fontSize: '12px',
-              color: 'var(--text-secondary)',
-              marginTop: '6px'
-            }}>
+            <div className="metric-label">
               Signs detected
             </div>
           </div>
 
           <div>
-            <div style={{
-              fontSize: '36px',
-              fontWeight: 400,
-              fontFamily: 'var(--font-mono)',
-              color: 'var(--text-primary)',
-              lineHeight: 1
-            }}>
+            <div className="metric-number">
               {padZero(spokenMessagesCount)}
             </div>
-            <div style={{
-              fontSize: '12px',
-              color: 'var(--text-secondary)',
-              marginTop: '6px'
-            }}>
+            <div className="metric-label">
               Spoken messages
             </div>
           </div>
         </div>
       </div>
 
-      {/* A CLEARER CONVERSATION STARTS HERE Tips Card */}
-      <div style={{
-        backgroundColor: 'var(--bg-card)',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--border-subtle)',
-        padding: '24px',
-        display: 'flex',
-        flexDirection: 'column',
-        boxShadow: 'var(--shadow-card)'
-      }}>
-        <div style={{
-          fontSize: '11px',
-          fontWeight: 600,
-          letterSpacing: '0.08em',
-          color: 'var(--text-muted)',
-          marginBottom: '18px'
-        }}>
+      {/* Tips Card */}
+      <div className="metrics-card-tips">
+        <div className="metrics-header-label">
           A CLEARER CONVERSATION STARTS HERE
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '24px'
-        }}>
-          {/* Tip 1 */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-            <div style={{ marginTop: '2px', color: 'var(--text-secondary)' }}>
-              <Sun size={18} />
+        <div className="tips-grid">
+          <div className="tip-item">
+            <div className="tip-icon-box">
+              <Sun size={16} />
             </div>
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                Find your light
-              </div>
-              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                Face a light source. Keep your background simple.
-              </div>
+              <div className="tip-title">Light your hands well</div>
+              <div className="tip-desc">Face your light source so gestures are crisp and shadows don't obscure finger shapes.</div>
             </div>
           </div>
 
-          {/* Tip 2 */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-            <div style={{ marginTop: '2px', color: 'var(--text-secondary)' }}>
-              <Maximize2 size={18} />
+          <div className="tip-item">
+            <div className="tip-icon-box">
+              <Maximize2 size={16} />
             </div>
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                Make room for your signs
-              </div>
-              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                Keep your face and both hands inside the frame.
-              </div>
+              <div className="tip-title">Stay in frame</div>
+              <div className="tip-desc">Position yourself so both hands and your face remain in the viewport reticle.</div>
             </div>
           </div>
 
-          {/* Tip 3 */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-            <div style={{ marginTop: '2px', color: 'var(--text-secondary)' }}>
-              <Hand size={18} />
+          <div className="tip-item">
+            <div className="tip-icon-box">
+              <Hand size={16} />
             </div>
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                Sign at your own pace
-              </div>
-              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                Use clear gestures and pause between phrases.
-              </div>
+              <div className="tip-title">Sign naturally</div>
+              <div className="tip-desc">Hold each sign steady for a split second or pause between phrases for fluent continuous translation.</div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

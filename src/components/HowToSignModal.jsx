@@ -1,15 +1,12 @@
-import React, { useState } from 'react';
-import { X, BookOpen, Sparkles, Search, Type, Hash, MessageSquare } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { X, BookOpen, Search } from 'lucide-react';
 import { ALPHABET_A_TO_Z, NUMBERS_0_TO_10, FULL_SIGN_VOCABULARY } from '../utils/signClassifier';
 
-export default function HowToSignModal({ isOpen, onClose, onSelectSign, initialLanguage = 'ISL' }) {
+export default function HowToSignModal({ isOpen, onClose, onSelectSign }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeSection, setActiveSection] = useState('all'); // 'all', 'alphabet', 'numbers', or specific categories
+  const [activeSection, setActiveSection] = useState('all');
 
-  if (!isOpen) return null;
-
-  // Build combined items for browsing
-  const allItems = [
+  const allItems = useMemo(() => [
     ...ALPHABET_A_TO_Z.map(item => ({
       ...item,
       phrase: `Letter ${item.letter}`,
@@ -26,23 +23,26 @@ export default function HowToSignModal({ isOpen, onClose, onSelectSign, initialL
       ...v,
       badge: v.category
     }))
-  ];
+  ], []);
 
-  // Filter based on search query and active section
-  const filteredItems = allItems.filter(item => {
-    const matchesSearch = searchQuery.trim() === '' ||
-      (item.name && item.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (item.phrase && item.phrase.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (item.hindiPhrase && item.hindiPhrase.includes(searchQuery));
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return allItems.filter(item => {
+      const matchesSearch = !q ||
+        (item.name && item.name.toLowerCase().includes(q)) ||
+        (item.description && item.description.toLowerCase().includes(q)) ||
+        (item.phrase && item.phrase.toLowerCase().includes(q)) ||
+        (item.hindiPhrase && item.hindiPhrase.includes(q));
 
-    if (!matchesSearch) return false;
+      if (!matchesSearch) return false;
+      if (activeSection === 'all') return true;
+      if (activeSection === 'alphabet') return item.isLetter;
+      if (activeSection === 'numbers') return item.isNumber || item.category === 'Numbers';
+      return item.category === activeSection;
+    });
+  }, [allItems, searchQuery, activeSection]);
 
-    if (activeSection === 'all') return true;
-    if (activeSection === 'alphabet') return item.isLetter;
-    if (activeSection === 'numbers') return item.isNumber || item.category === 'Numbers';
-    return item.category === activeSection;
-  });
+  if (!isOpen) return null;
 
   const categories = [
     { id: 'all', label: 'All Signs (130+)' },
@@ -62,28 +62,12 @@ export default function HowToSignModal({ isOpen, onClose, onSelectSign, initialL
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
+        className="modal-dialog"
+        style={{ maxWidth: '850px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
         onClick={e => e.stopPropagation()}
-        style={{
-          backgroundColor: 'var(--bg-card)',
-          borderRadius: 'var(--radius-xl)',
-          border: '1px solid var(--border-strong)',
-          maxWidth: '850px',
-          width: '100%',
-          maxHeight: '90vh',
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.85)',
-          overflow: 'hidden'
-        }}
       >
         {/* Header */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '20px 24px',
-          borderBottom: '1px solid var(--border-subtle)'
-        }}>
+        <div className="modal-header">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
               <BookOpen size={20} color="var(--accent-cyan)" />
@@ -97,15 +81,9 @@ export default function HowToSignModal({ isOpen, onClose, onSelectSign, initialL
           </div>
 
           <button
+            type="button"
+            className="btn-icon"
             onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              padding: '6px',
-              borderRadius: '6px'
-            }}
           >
             <X size={20} />
           </button>
@@ -120,31 +98,19 @@ export default function HowToSignModal({ isOpen, onClose, onSelectSign, initialL
           alignItems: 'center',
           gap: '12px'
         }}>
-          <div style={{
-            position: 'relative',
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center'
-          }}>
+          <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
             <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px' }} />
             <input
               type="text"
               placeholder="Search signs by name, phrase, English or Hindi meaning (e.g. Doctor, Namaste, A, Water)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: '100%',
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-md)',
-                padding: '8px 12px 8px 36px',
-                fontSize: '13px',
-                color: 'var(--text-primary)',
-                outline: 'none'
-              }}
+              className="ui-select"
+              style={{ width: '100%', padding: '8px 12px 8px 36px', fontSize: '13px' }}
             />
             {searchQuery && (
               <button
+                type="button"
                 onClick={() => setSearchQuery('')}
                 style={{
                   position: 'absolute',
@@ -179,18 +145,9 @@ export default function HowToSignModal({ isOpen, onClose, onSelectSign, initialL
           {categories.map(cat => (
             <button
               key={cat.id}
+              type="button"
+              className={`category-chip ${activeSection === cat.id ? 'active' : ''}`}
               onClick={() => setActiveSection(cat.id)}
-              style={{
-                padding: '5px 12px',
-                borderRadius: '999px',
-                border: 'none',
-                backgroundColor: activeSection === cat.id ? '#ffffff' : 'rgba(255, 255, 255, 0.05)',
-                color: activeSection === cat.id ? '#000000' : 'var(--text-secondary)',
-                fontSize: '11px',
-                fontWeight: activeSection === cat.id ? 600 : 400,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
-              }}
             >
               {cat.label}
             </button>
@@ -217,16 +174,7 @@ export default function HowToSignModal({ isOpen, onClose, onSelectSign, initialL
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                gap: '10px',
-                transition: 'border-color 0.2s ease, transform 0.15s ease'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.4)';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                e.currentTarget.style.transform = 'translateY(0)';
+                gap: '10px'
               }}
             >
               <div>
@@ -234,37 +182,28 @@ export default function HowToSignModal({ isOpen, onClose, onSelectSign, initialL
                   <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
                     {item.name || `Letter ${item.letter}`}
                   </span>
-                  <span style={{
-                    fontSize: '10px',
-                    fontFamily: 'var(--font-mono)',
-                    color: item.isLetter ? 'var(--accent-blue)' : (item.isNumber ? 'var(--accent-green)' : 'var(--accent-cyan)'),
-                    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                    padding: '2px 6px',
-                    borderRadius: '4px'
+                  <span className="hud-tag" style={{
+                    color: item.isLetter ? 'var(--accent-blue)' : (item.isNumber ? 'var(--accent-green)' : 'var(--accent-cyan)')
                   }}>
                     {item.badge}
                   </span>
                 </div>
 
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4, marginBottom: '8px' }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4, marginBottom: '6px' }}>
                   {item.description}
                 </p>
 
-                {item.phrase && (
-                  <div style={{
-                    fontSize: '11px',
-                    color: 'var(--accent-cyan)',
-                    backgroundColor: 'rgba(6, 182, 212, 0.08)',
-                    padding: '5px 8px',
-                    borderRadius: '4px',
-                    fontStyle: 'italic'
-                  }}>
-                    "{item.phrase}"
+                {item.hindiPhrase && (
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                    Meaning: <span style={{ color: 'var(--text-primary)' }}>"{item.hindiPhrase}"</span>
                   </div>
                 )}
               </div>
 
               <button
+                type="button"
+                className="btn-action-start"
+                style={{ width: '100%', justifyContent: 'center', fontSize: '12px', padding: '6px 12px' }}
                 onClick={() => {
                   onSelectSign({
                     id: item.id,
@@ -277,26 +216,8 @@ export default function HowToSignModal({ isOpen, onClose, onSelectSign, initialL
                   });
                   onClose();
                 }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  padding: '7px',
-                  borderRadius: '6px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-primary)',
-                  fontSize: '11px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s'
-                }}
-                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.12)'}
-                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'}
               >
-                <Sparkles size={12} color="var(--accent-cyan)" />
-                <span>Test this sign</span>
+                Simulate Sign
               </button>
             </div>
           ))}
