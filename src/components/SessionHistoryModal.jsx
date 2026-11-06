@@ -7,11 +7,7 @@ export default function SessionHistoryModal({ isOpen, onClose, history, onClearH
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="modal-dialog"
-        style={{ maxWidth: '600px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
-        onClick={e => e.stopPropagation()}
-      >
+      <div className="modal-dialog modal-md" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="modal-header">
           <div>
@@ -32,28 +28,16 @@ export default function SessionHistoryModal({ isOpen, onClose, history, onClearH
         </div>
 
         {/* Content List */}
-        <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div className="modal-scroll-body">
           {history.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
+            <div className="history-empty-state">
               <MessageSquare size={36} style={{ margin: '0 auto 12px auto', opacity: 0.4 }} />
               <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>No translations recorded yet</p>
               <p style={{ fontSize: '12px', marginTop: '4px' }}>Signs recognized during your session will appear here.</p>
             </div>
           ) : (
             history.map((item, index) => (
-              <div
-                key={index}
-                style={{
-                  backgroundColor: 'var(--bg-card-subtle)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border-subtle)',
-                  padding: '14px 16px',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  justifyContent: 'space-between',
-                  gap: '12px'
-                }}
-              >
+              <div key={index} className="history-card-item">
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                     <span className="hud-tag" style={{ color: 'var(--accent-cyan)', background: 'rgba(6, 182, 212, 0.1)', borderColor: 'rgba(6, 182, 212, 0.25)' }}>
@@ -90,14 +74,7 @@ export default function SessionHistoryModal({ isOpen, onClose, history, onClearH
 
         {/* Footer */}
         {history.length > 0 && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            padding: '16px 24px',
-            borderTop: '1px solid var(--border-subtle)',
-            backgroundColor: 'var(--bg-card)'
-          }}>
+          <div className="modal-footer">
             <button
               type="button"
               className="btn-icon"

@@ -61,11 +61,7 @@ export default function HowToSignModal({ isOpen, onClose, onSelectSign }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="modal-dialog"
-        style={{ maxWidth: '850px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
-        onClick={e => e.stopPropagation()}
-      >
+      <div className="modal-dialog modal-lg" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="modal-header">
           <div>
@@ -90,14 +86,7 @@ export default function HowToSignModal({ isOpen, onClose, onSelectSign }) {
         </div>
 
         {/* Search Bar & Stats */}
-        <div style={{
-          padding: '14px 24px',
-          backgroundColor: 'var(--bg-card-subtle)',
-          borderBottom: '1px solid var(--border-subtle)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
+        <div className="enc-search-bar">
           <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
             <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px' }} />
             <input
@@ -133,15 +122,7 @@ export default function HowToSignModal({ isOpen, onClose, onSelectSign }) {
         </div>
 
         {/* Category Filter Pills */}
-        <div style={{
-          display: 'flex',
-          gap: '6px',
-          padding: '10px 24px',
-          backgroundColor: 'var(--bg-card)',
-          borderBottom: '1px solid var(--border-subtle)',
-          overflowX: 'auto',
-          whiteSpace: 'nowrap'
-        }}>
+        <div className="enc-filter-bar">
           {categories.map(cat => (
             <button
               key={cat.id}
@@ -155,28 +136,9 @@ export default function HowToSignModal({ isOpen, onClose, onSelectSign }) {
         </div>
 
         {/* Cards Grid */}
-        <div style={{
-          padding: '20px 24px',
-          overflowY: 'auto',
-          flex: 1,
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-          gap: '12px'
-        }}>
+        <div className="enc-grid">
           {filteredItems.map(item => (
-            <div
-              key={item.id}
-              style={{
-                backgroundColor: 'var(--bg-card-subtle)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-subtle)',
-                padding: '14px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                gap: '10px'
-              }}
-            >
+            <div key={item.id} className="enc-card">
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                   <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
