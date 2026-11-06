@@ -1457,9 +1457,20 @@
   color: #ffffff;
 }
 
-/* ==========================================================================
-   Modal Dialogs & Overlays
-   ========================================================================== */
+/* Modal Dialogs & Overlays */
+dialog {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: auto;
+  max-width: 95vw;
+}
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;

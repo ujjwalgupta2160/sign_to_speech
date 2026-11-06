@@ -5,17 +5,743 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'><path d='M10 3a1.5 1.5 0 0 1 1.5 1.5V11h.5a1.5 1.5 0 0 1 1.5 1.5V6a1.5 1.5 0 0 1 3 0v6.5a1.5 1.5 0 0 1 3 0v4c0 4.14-3.36 7.5-7.5 7.5S4 20.64 4 16.5V9.5A1.5 1.5 0 0 1 5.5 8 1.5 1.5 0 0 1 7 9.5V11h1.5V4.5A1.5 1.5 0 0 1 10 3z'/></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SignVoice — Real-Time Sign Language to Speech Translation</title>
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <!-- MediaPipe dependencies for fast real-time computer vision (Hands + Pose like signBridge) -->
+    
+    <!-- MediaPipe Hands, Pose and Drawing dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
   </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+  <body class="app-shell">
+    
+    <!-- ==========================================================================
+         Top Navigation Bar
+         ========================================================================== -->
+    <header class="navbar" role="banner">
+      <!-- Brand Logo -->
+      <div class="navbar-brand">
+        <div class="brand-icon-box" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/>
+            <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/>
+            <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/>
+            <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+          </svg>
+        </div>
+        <div class="brand-title-wrap">
+          <span class="brand-title">UNI-SIGN</span>
+          <span class="brand-badge">ICLR 2025</span>
+        </div>
+      </div>
+
+      <!-- Center Navigation Tabs -->
+      <nav class="nav-center-tabs" aria-label="Main Navigation">
+        <button type="button" class="nav-tab-btn active" id="nav-translator-tab">
+          Translator
+          <div class="nav-tab-indicator"></div>
+        </button>
+        <button type="button" class="nav-tab-btn" id="open-history-btn">
+          Session history
+        </button>
+        <button type="button" class="nav-tab-btn" id="open-encyclopedia-btn">
+          How to sign
+        </button>
+      </nav>
+
+      <!-- Right Controls -->
+      <div class="nav-right-controls">
+        <div class="nav-pill-badge active-status" title="Uni-Sign ST-GCN Neural Engine running locally on device">
+          <span class="nav-pill-dot"></span>
+          <span>Uni-Sign ST-GCN Active</span>
+        </div>
+
+        <div class="nav-pill-badge subtle">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--accent-green)" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+          <span>Private session</span>
+        </div>
+
+        <button type="button" class="btn-icon" id="open-settings-btn" title="Session & Camera Settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="21" x2="4" y2="14"/>
+            <line x1="4" y1="10" x2="4" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12" y2="3"/>
+            <line x1="20" y1="21" x2="20" y2="16"/>
+            <line x1="20" y1="12" x2="20" y2="3"/>
+            <line x1="1" y1="14" x2="7" y2="14"/>
+            <line x1="9" y1="8" x2="15" y2="8"/>
+            <line x1="17" y1="16" x2="23" y2="16"/>
+          </svg>
+        </button>
+
+        <div class="nav-user-avatar" aria-label="User profile">
+          G
+        </div>
+      </div>
+    </header>
+
+    <!-- ==========================================================================
+         Main Workspace Layout
+         ========================================================================== -->
+    <main class="app-main-workspace" role="main">
+      <!-- Workspace Header -->
+      <header class="workspace-header">
+        <div>
+          <h1 class="workspace-title">Uni-Sign Workspace</h1>
+          <p class="workspace-subtitle">
+            Continuous Multimodal Sign Language Understanding & Neural Speech (ICLR 2025)
+          </p>
+        </div>
+
+        <!-- Session Timer Pill -->
+        <div class="session-timer-pill" id="session-timer-pill">
+          <div class="timer-dot"></div>
+          <span id="session-state-label">Not started</span>
+          <span class="timer-divider">|</span>
+          <time id="session-timer-text">00:00</time>
+        </div>
+      </header>
+
+      <!-- 2-Column Responsive Workspace Grid -->
+      <div class="workspace-grid">
+        
+        <!-- Left Column: Sign Input & Vision Engine -->
+        <section class="workspace-col-left" aria-label="Camera & Gestures">
+          <article class="ui-card">
+            <!-- Card Header -->
+            <header class="card-header">
+              <div class="card-title-group">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--text-secondary)" stroke-width="2">
+                  <path d="M3 7V5a2 2 0 0 1 2-2h2"/>
+                  <path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+                  <path d="M21 17v2a2 2 0 0 1-2 2h-2"/>
+                  <path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+                </svg>
+                <span class="card-title">Sign input</span>
+
+                <!-- Mode Switcher Tabs -->
+                <nav class="pill-switcher" aria-label="Sign input modes">
+                  <button type="button" class="pill-tab-btn active" id="tab-mode-phrases">
+                    Phrases & Sentences
+                  </button>
+                  <button type="button" class="pill-tab-btn" id="tab-mode-alphabet">
+                    A–Z Alphabet
+                  </button>
+                  <button type="button" class="pill-tab-btn" id="tab-mode-numbers">
+                    Numbers (0–10)
+                  </button>
+                </nav>
+              </div>
+
+              <div class="card-title-group">
+                <div class="nav-pill-badge active-status">
+                  <span class="nav-pill-dot"></span>
+                  <span>Uni-Sign ST-GCN Online</span>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:6px">
+                  <label for="sign-lang-select" style="font-size:12px;color:var(--text-secondary)">Language:</label>
+                  <select id="sign-lang-select" class="ui-select">
+                    <option value="ISL">Indian Sign Language (ISL)</option>
+                    <option value="ASL">American Sign Language (ASL)</option>
+                    <option value="BSL">British Sign Language (BSL)</option>
+                  </select>
+                </div>
+              </div>
+            </header>
+
+            <!-- Video Viewport Frame -->
+            <div class="viewport-frame" id="viewport-frame">
+              <!-- Reticle Corner Brackets -->
+              <div class="corner-bracket corner-tl"></div>
+              <div class="corner-bracket corner-tr"></div>
+              <div class="corner-bracket corner-bl"></div>
+              <div class="corner-bracket corner-br"></div>
+
+              <!-- Top-Left Telemetry HUD -->
+              <div class="camera-hud-top-left" id="camera-hud-top-left">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <div class="hud-status-dot" id="hud-camera-dot"></div>
+                  <span id="hud-camera-label">CAMERA OFF</span>
+                </div>
+
+                <span style="color:var(--border-strong);margin:0 2px">|</span>
+
+                <div class="hud-buffer-pill">
+                  <span id="hud-buffer-text">UNI-SIGN ST-GCN BUFFER: 0/16</span>
+                  <div class="buffer-bar-track" id="hud-buffer-cells">
+                    <div class="buffer-bar-cell"></div>
+                    <div class="buffer-bar-cell"></div>
+                    <div class="buffer-bar-cell"></div>
+                    <div class="buffer-bar-cell"></div>
+                    <div class="buffer-bar-cell"></div>
+                    <div class="buffer-bar-cell"></div>
+                    <div class="buffer-bar-cell"></div>
+                    <div class="buffer-bar-cell"></div>
+                    <div class="buffer-bar-cell"></div>
+                    <div class="buffer-bar-cell"></div>
+                    <div class="buffer-bar-cell"></div>
+                    <div class="buffer-bar-cell"></div>
+                    <div class="buffer-bar-cell"></div>
+                    <div class="buffer-bar-cell"></div>
+                    <div class="buffer-bar-cell"></div>
+                    <div class="buffer-bar-cell"></div>
+                  </div>
+                  <span style="color:var(--text-muted);font-size:9px">~12.5 FPS</span>
+                </div>
+
+                <span class="hud-tag" id="hud-body-tag">UNI-SIGN BODY: SCAN</span>
+                <span class="hud-tag" id="hud-hands-tag">HANDS: 0</span>
+                <span class="hud-tag anchor" id="hud-anchor-tag" style="display:none">ANCHOR</span>
+              </div>
+
+              <!-- Top-Right Motion HUD -->
+              <div class="camera-hud-top-right">
+                <div class="motion-hud-badge" id="hud-motion-badge"></div>
+              </div>
+
+              <!-- Native HTML5 Video Element -->
+              <video id="webcam-video" class="viewport-video" autoplay playsinline muted></video>
+
+              <!-- Skeleton Overlay Canvas -->
+              <canvas id="skeleton-canvas" class="viewport-canvas"></canvas>
+
+              <!-- Camera Off Placeholder -->
+              <div class="camera-off-state" id="camera-off-state">
+                <div class="camera-off-icon-box">
+                  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="var(--accent-cyan)" stroke-width="2">
+                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                    <circle cx="12" cy="13" r="3"/>
+                  </svg>
+                </div>
+
+                <h3 class="camera-off-title">Ready when you are.</h3>
+                <p class="camera-off-desc">
+                  Detects every sign movement precisely, waits for you to finish your sentence, and synthesizes speech as soon as you stop.
+                </p>
+
+                <button type="button" class="btn-action-primary" id="start-camera-btn">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                    <circle cx="12" cy="13" r="3"/>
+                  </svg>
+                  <span>Enable camera & Start Translating</span>
+                </button>
+
+                <div class="camera-off-lock-note">
+                  <span>🔒</span>
+                  <span>Your browser will ask for camera access</span>
+                </div>
+
+                <div class="camera-error-badge" id="camera-error-box" style="display:none"></div>
+                <div class="camera-recognition-badge" id="camera-recognition-status">
+                  Recognition status: Ready
+                </div>
+              </div>
+
+              <!-- Central Recognition HUD Overlay -->
+              <div class="recognition-overlay-hud hidden" id="recognition-overlay">
+                <div id="recognition-analyzing-msg" style="display:none;align-items:center;gap:10px;padding:4px 0">
+                  <span class="animate-pulse-slow" style="font-size:18px">✨</span>
+                  <span style="font-size:15px;font-weight:600;color:#ffffff">
+                    Uni-Sign AI: Accurately Recognizing Sign...
+                  </span>
+                </div>
+
+                <div id="recognition-content" style="display:flex;flex-direction:column;width:100%;gap:8px">
+                  <div class="recognition-header-row">
+                    <div class="recognition-title-group">
+                      <span class="recognition-sign-name" id="recognition-sign-name"></span>
+                      <span class="recognition-sign-phrase" id="recognition-sign-phrase"></span>
+                    </div>
+                    <span class="recognition-percent-badge" id="recognition-percent-badge">0%</span>
+                  </div>
+
+                  <div class="hold-progress-track" id="hold-progress-track">
+                    <div class="hold-progress-fill" id="hold-progress-fill"></div>
+                  </div>
+
+                  <div class="recognition-status-text" id="recognition-status-text">
+                    Hold steady to recognize sign
+                  </div>
+                </div>
+              </div>
+
+              <!-- Viewport Reticle Guide -->
+              <div class="viewport-reticle-guide">
+                FACE + BOTH HANDS IN FRAME (PAUSE WHEN FINISHED SIGNING)
+              </div>
+
+              <!-- Viewport Bottom Right Quick Actions -->
+              <div class="viewport-bottom-right-controls">
+                <button type="button" class="btn-translate-manual" id="translate-manual-btn" title="Translate Sign (Uni-Sign AI)">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                  <span>Translate Sign (Uni-Sign AI)</span>
+                </button>
+
+                <button type="button" class="btn-camera-stop" id="stop-camera-btn" style="display:none" title="Stop camera">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                    <path d="M21 21H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l2-3h4"/>
+                  </svg>
+                  <span>Stop Camera</span>
+                </button>
+
+                <button type="button" class="btn-second-person-toggle" id="second-person-btn" title="Toggle between scanning a second person vs yourself">
+                  Self Mode
+                </button>
+              </div>
+            </div>
+
+            <!-- Vocabulary Toolbars (HTML Content) -->
+            <!-- 1. A-Z Fingerspelling Toolbar -->
+            <section class="vocab-toolbar" id="vocab-alphabet" style="display:none" aria-label="Alphabet Fingerspelling">
+              <div class="vocab-toolbar-header">
+                <span class="vocab-title-label">COMPLETE A–Z FINGERSPELLING:</span>
+                <div class="vocab-actions-group">
+                  <button type="button" class="vocab-action-btn" id="action-space-btn">Space</button>
+                  <button type="button" class="vocab-action-btn" id="action-backspace-btn">Backspace</button>
+                </div>
+              </div>
+              <div class="vocab-scroll-row">
+                <button type="button" class="vocab-char-btn" data-char="A">A</button>
+                <button type="button" class="vocab-char-btn" data-char="B">B</button>
+                <button type="button" class="vocab-char-btn" data-char="C">C</button>
+                <button type="button" class="vocab-char-btn" data-char="D">D</button>
+                <button type="button" class="vocab-char-btn" data-char="E">E</button>
+                <button type="button" class="vocab-char-btn" data-char="F">F</button>
+                <button type="button" class="vocab-char-btn" data-char="G">G</button>
+                <button type="button" class="vocab-char-btn" data-char="H">H</button>
+                <button type="button" class="vocab-char-btn" data-char="I">I</button>
+                <button type="button" class="vocab-char-btn" data-char="J">J</button>
+                <button type="button" class="vocab-char-btn" data-char="K">K</button>
+                <button type="button" class="vocab-char-btn" data-char="L">L</button>
+                <button type="button" class="vocab-char-btn" data-char="M">M</button>
+                <button type="button" class="vocab-char-btn" data-char="N">N</button>
+                <button type="button" class="vocab-char-btn" data-char="O">O</button>
+                <button type="button" class="vocab-char-btn" data-char="P">P</button>
+                <button type="button" class="vocab-char-btn" data-char="Q">Q</button>
+                <button type="button" class="vocab-char-btn" data-char="R">R</button>
+                <button type="button" class="vocab-char-btn" data-char="S">S</button>
+                <button type="button" class="vocab-char-btn" data-char="T">T</button>
+                <button type="button" class="vocab-char-btn" data-char="U">U</button>
+                <button type="button" class="vocab-char-btn" data-char="V">V</button>
+                <button type="button" class="vocab-char-btn" data-char="W">W</button>
+                <button type="button" class="vocab-char-btn" data-char="X">X</button>
+                <button type="button" class="vocab-char-btn" data-char="Y">Y</button>
+                <button type="button" class="vocab-char-btn" data-char="Z">Z</button>
+              </div>
+            </section>
+
+            <!-- 2. Numbers 0-10 Toolbar -->
+            <section class="vocab-toolbar" id="vocab-numbers" style="display:none" aria-label="Numbers Toolbar">
+              <div style="display:flex;align-items:center;gap:8px;overflow-x:auto">
+                <span class="vocab-title-label">NUMBERS (0–10):</span>
+                <button type="button" class="vocab-num-btn" data-num="0">0</button>
+                <button type="button" class="vocab-num-btn" data-num="1">1</button>
+                <button type="button" class="vocab-num-btn" data-num="2">2</button>
+                <button type="button" class="vocab-num-btn" data-num="3">3</button>
+                <button type="button" class="vocab-num-btn" data-num="4">4</button>
+                <button type="button" class="vocab-num-btn" data-num="5">5</button>
+                <button type="button" class="vocab-num-btn" data-num="6">6</button>
+                <button type="button" class="vocab-num-btn" data-num="7">7</button>
+                <button type="button" class="vocab-num-btn" data-num="8">8</button>
+                <button type="button" class="vocab-num-btn" data-num="9">9</button>
+                <button type="button" class="vocab-num-btn" data-num="10">10</button>
+              </div>
+            </section>
+
+            <!-- 3. Phrases & Words Toolbar -->
+            <section class="vocab-toolbar" id="vocab-phrases" aria-label="Conversational Phrases Toolbar">
+              <div style="display:flex;align-items:center;gap:6px;overflow-x:auto;padding-bottom:2px">
+                <button type="button" class="category-chip active" data-cat="All">All</button>
+                <button type="button" class="category-chip" data-cat="Greetings">Greetings</button>
+                <button type="button" class="category-chip" data-cat="Family">Family</button>
+                <button type="button" class="category-chip" data-cat="Responses">Responses</button>
+                <button type="button" class="category-chip" data-cat="Questions">Questions</button>
+                <button type="button" class="category-chip" data-cat="Emergency">Emergency</button>
+                <button type="button" class="category-chip" data-cat="Daily Needs">Daily Needs</button>
+                <button type="button" class="category-chip" data-cat="Emotions">Emotions</button>
+                <button type="button" class="category-chip" data-cat="Actions">Actions</button>
+                <button type="button" class="category-chip" data-cat="Time">Time</button>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:6px;overflow-x:auto;white-space:nowrap;padding-bottom:4px">
+                <button type="button" class="word-sign-chip" data-sign="Namaste" data-phrase="Namaste, greetings!" data-category="Greetings">Namaste</button>
+                <button type="button" class="word-sign-chip" data-sign="Hello" data-phrase="Hello, nice to meet you" data-category="Greetings">Hello</button>
+                <button type="button" class="word-sign-chip" data-sign="Thank You" data-phrase="Thank you very much" data-category="Responses">Thank You</button>
+                <button type="button" class="word-sign-chip" data-sign="Please" data-phrase="Please assist me" data-category="Responses">Please</button>
+                <button type="button" class="word-sign-chip" data-sign="Help" data-phrase="I need help please" data-category="Emergency">Help</button>
+                <button type="button" class="word-sign-chip" data-sign="Yes" data-phrase="Yes, exactly" data-category="Responses">Yes</button>
+                <button type="button" class="word-sign-chip" data-sign="No" data-phrase="No, thank you" data-category="Responses">No</button>
+                <button type="button" class="word-sign-chip" data-sign="Water" data-phrase="I would like water" data-category="Daily Needs">Water</button>
+                <button type="button" class="word-sign-chip" data-sign="Food" data-phrase="I would like food" data-category="Daily Needs">Food</button>
+                <button type="button" class="word-sign-chip" data-sign="Doctor" data-phrase="Please call a doctor" data-category="Emergency">Doctor</button>
+                <button type="button" class="word-sign-chip" data-sign="Hospital" data-phrase="I need to go to the hospital" data-category="Emergency">Hospital</button>
+                <button type="button" class="word-sign-chip" data-sign="Family" data-phrase="My family" data-category="Family">Family</button>
+                <button type="button" class="word-sign-chip" data-sign="Friend" data-phrase="You are my friend" data-category="Family">Friend</button>
+                <button type="button" class="word-sign-chip" data-sign="Good" data-phrase="Very good" data-category="Responses">Good</button>
+                <button type="button" class="word-sign-chip" data-sign="Happy" data-phrase="I am happy" data-category="Emotions">Happy</button>
+              </div>
+            </section>
+
+            <!-- Card Footer -->
+            <footer class="card-footer">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:center;color:var(--text-muted)">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                    <circle cx="12" cy="13" r="3"/>
+                  </svg>
+                </div>
+                <div>
+                  <div style="font-size:13px;font-weight:500;color:var(--text-primary)" id="footer-session-status">Camera access not enabled</div>
+                  <div style="font-size:12px;color:var(--text-secondary)">Enable your camera, then start a session to translate.</div>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:10px">
+                <button type="button" class="btn-action-secondary" id="reset-session-btn">Reset</button>
+                <button type="button" class="btn-action-start" id="start-session-btn">Start session</button>
+                <button type="button" class="btn-action-stop" id="stop-session-btn" style="display:none">Stop session</button>
+              </div>
+            </footer>
+          </article>
+        </section>
+
+        <!-- Right Column: Detected Text & Speech Converter -->
+        <section class="workspace-col-right" aria-label="Output & Audio Speech">
+          <!-- Detected Text Card -->
+          <article class="detected-text-card">
+            <header style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--text-secondary)" stroke-width="2">
+                  <polyline points="4 17 10 11 4 5"/>
+                  <line x1="12" y1="19" x2="20" y2="19"/>
+                </svg>
+                <span style="font-size:15px;font-weight:600;color:var(--text-primary)">Detected text</span>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:8px;position:relative">
+                <button type="button" class="btn-icon" id="copy-text-btn" title="Copy detected text">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                  </svg>
+                </button>
+
+                <button type="button" class="btn-icon" id="text-more-btn" title="More options">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="1"/>
+                    <circle cx="19" cy="12" r="1"/>
+                    <circle cx="5" cy="12" r="1"/>
+                  </svg>
+                </button>
+
+                <div class="detected-text-menu-dropdown" id="text-menu-dropdown" style="display:none">
+                  <button type="button" class="menu-dropdown-item" id="uppercase-btn">Uppercase Text</button>
+                  <button type="button" class="menu-dropdown-item danger" id="reset-text-btn">Reset & Clear</button>
+                </div>
+              </div>
+            </header>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+              <div style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--text-muted)">
+                <div style="width:6px;height:6px;border-radius:50%;background-color:var(--text-muted)" id="text-status-dot"></div>
+                <span id="text-status-badge">AWAITING YOUR FIRST SIGN</span>
+              </div>
+            </div>
+
+            <!-- Main Editable Text Area -->
+            <div style="min-height:140px;display:flex;flex-direction:column;position:relative">
+              <div id="detected-text-empty-prompt">
+                <h2 style="font-size:24px;font-weight:400;color:var(--text-primary);line-height:1.3;margin-bottom:10px">
+                  Your words will appear here.
+                </h2>
+                <p style="font-size:14px;color:var(--text-secondary);line-height:1.5">
+                  Signs become text in real time. Review or edit your message before you speak it aloud.
+                </p>
+              </div>
+
+              <textarea id="detected-text-textarea" rows="4" placeholder="Your translated words..." style="width:100%;display:none;background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:12px 14px;color:var(--text-primary);font-size:18px;line-height:1.4;resize:none;outline:none"></textarea>
+
+              <div class="recent-signs-row" id="recent-signs-row"></div>
+            </div>
+
+            <footer class="detected-text-counter-row" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border-subtle)">
+              <div style="font-weight:600;letter-spacing:0.08em;color:var(--text-muted)" id="word-count-badge">
+                0 WORDS
+              </div>
+              <button type="button" class="btn-icon" id="clear-text-btn" style="font-size:13px">Clear text</button>
+            </footer>
+          </article>
+
+          <!-- Speech Converter Card -->
+          <article class="natural-speech-card">
+            <header style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div class="soundwave-container">
+                  <div class="soundwave-bar style-idle" style="height:10px"></div>
+                  <div class="soundwave-bar style-idle" style="height:16px"></div>
+                  <div class="soundwave-bar style-idle" style="height:8px"></div>
+                </div>
+                <span style="font-size:15px;font-weight:600;color:var(--text-primary)">Uni-Sign Speech Converter</span>
+              </div>
+
+              <div class="speech-status-pill" id="speech-status-pill">
+                <span class="nav-pill-dot" style="display:none"></span>
+                <span>IDLE</span>
+              </div>
+            </header>
+
+            <div style="display:grid;grid-template-columns:1fr 90px;gap:12px;margin-bottom:18px">
+              <div>
+                <label for="speech-voice-select" style="display:block;font-size:12px;color:var(--text-secondary);margin-bottom:6px">Voice</label>
+                <select id="speech-voice-select" class="ui-select" style="width:100%;padding:9px 12px;font-size:13px"></select>
+              </div>
+
+              <div>
+                <label for="speech-speed-select" style="display:block;font-size:12px;color:var(--text-secondary);margin-bottom:6px">Speed</label>
+                <select id="speech-speed-select" class="ui-select" style="width:100%;padding:9px 12px;font-size:13px">
+                  <option value="0.75">0.75×</option>
+                  <option value="1.0" selected>1.0×</option>
+                  <option value="1.25">1.25×</option>
+                  <option value="1.5">1.5×</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:14px">
+              <div style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none" id="auto-speak-toggle">
+                <div class="toggle-switch active" id="auto-speak-switch">
+                  <div class="toggle-knob"></div>
+                </div>
+                <span style="font-size:13px;color:var(--text-secondary)">Auto-speak</span>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:8px">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--text-secondary)" stroke-width="2">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                </svg>
+                <input type="range" min="0" max="1" step="0.05" value="1" id="speech-volume-slider" class="speech-range-input" style="width:90px" aria-label="Speech volume">
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:14px">
+              <button type="button" class="btn-action-start" id="speak-btn" style="justify-content:center">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                <span>Speak text</span>
+              </button>
+
+              <button type="button" class="btn-action-stop" id="stop-speech-btn" style="padding:8px 16px">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                  <rect x="6" y="6" width="12" height="12"/>
+                </svg>
+                <span>Stop</span>
+              </button>
+            </div>
+
+            <div style="text-align:center;font-size:12px;color:var(--text-muted)" id="speech-status-text">
+              Speech is ready when your first message is.
+            </div>
+          </article>
+        </section>
+      </div>
+
+      <!-- Bottom Metrics Guidance Section (Rich Semantic HTML) -->
+      <section class="bottom-metrics-grid" aria-label="Session metrics and signing guidance">
+        <div class="metrics-card-session">
+          <div class="metrics-header-label">THIS SESSION</div>
+          <div class="metrics-numbers-row">
+            <div>
+              <div class="metric-number" id="signs-detected-number">00</div>
+              <div class="metric-label">Signs detected</div>
+            </div>
+            <div>
+              <div class="metric-number" id="spoken-messages-number">00</div>
+              <div class="metric-label">Spoken messages</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="metrics-card-tips">
+          <div class="metrics-header-label">A CLEARER CONVERSATION STARTS HERE</div>
+          <div class="tips-grid">
+            <div class="tip-item">
+              <div class="tip-icon-box">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="5"/>
+                  <line x1="12" y1="1" x2="12" y2="3"/>
+                  <line x1="12" y1="21" x2="12" y2="23"/>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                  <line x1="1" y1="12" x2="3" y2="12"/>
+                  <line x1="21" y1="12" x2="23" y2="12"/>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+              </div>
+              <div>
+                <div class="tip-title">Light your hands well</div>
+                <div class="tip-desc">Face your light source so gestures are crisp and shadows don't obscure finger shapes.</div>
+              </div>
+            </div>
+
+            <div class="tip-item">
+              <div class="tip-icon-box">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="15 3 21 3 21 9"/>
+                  <polyline points="9 21 3 21 3 15"/>
+                  <line x1="21" y1="3" x2="14" y2="10"/>
+                  <line x1="3" y1="21" x2="10" y2="14"/>
+                </svg>
+              </div>
+              <div>
+                <div class="tip-title">Stay in frame</div>
+                <div class="tip-desc">Position yourself so both hands and your face remain in the viewport reticle.</div>
+              </div>
+            </div>
+
+            <div class="tip-item">
+              <div class="tip-icon-box">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/>
+                  <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/>
+                  <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/>
+                  <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+                </svg>
+              </div>
+              <div>
+                <div class="tip-title">Sign naturally</div>
+                <div class="tip-desc">Hold each sign steady for a split second or pause between phrases for fluent continuous translation.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- App Footer -->
+      <footer class="app-footer">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="color:var(--text-secondary)">SignVoice</span>
+          <span>/</span>
+          <span>From gestures to words.</span>
+        </div>
+
+        <div style="text-align:center;color:var(--text-muted)">
+          Translation can make mistakes. Review your words before speaking.
+        </div>
+
+        <div>
+          <button type="button" class="footer-link-btn" id="footer-how-to-sign-btn">
+            <span>Need a hand?</span>
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="7" y1="17" x2="17" y2="7"/>
+              <polyline points="7 7 17 7 17 17"/>
+            </svg>
+          </button>
+        </div>
+      </footer>
+    </main>
+
+    <!-- ==========================================================================
+         Native HTML5 <dialog> Modals (Zero Framework Overhead)
+         ========================================================================== -->
+    <!-- 1. Settings Dialog -->
+    <dialog id="settings-dialog" class="modal-dialog modal-sm">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:8px">
+          <h2 style="font-size:18px;font-weight:600;color:var(--text-primary)">Session & Camera Settings</h2>
+        </div>
+        <button type="button" class="btn-icon" id="close-settings-btn" aria-label="Close dialog">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="settings-toggle-row">
+          <div>
+            <div style="font-size:14px;font-weight:500;color:var(--text-primary)">Mirror Video Feed</div>
+            <div style="font-size:12px;color:var(--text-secondary)">Mirror camera for self-signing</div>
+          </div>
+          <div class="toggle-switch" id="mirror-mode-switch">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+
+        <div style="padding:14px 16px;background:var(--bg-card-subtle);border-radius:var(--radius-md);border:1px solid var(--border-subtle)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="font-size:14px;font-weight:500;color:var(--text-primary)">Detection Sensitivity</div>
+            <div style="font-size:12px;font-family:var(--font-mono);color:var(--accent-cyan)" id="sensitivity-value">70%</div>
+          </div>
+          <input type="range" min="40" max="95" value="70" id="sensitivity-slider" style="width:100%;accent-color:#ffffff;cursor:pointer" aria-label="Sensitivity">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px">
+            <span>Relaxed</span>
+            <span>Strict</span>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:var(--radius-md);background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);font-size:12px;color:#a7f3d0">
+          <div>
+            <strong>100% On-Device Processing</strong>: All vision calculations and speech generation happen locally in your browser. No video frames leave your computer.
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="pill-tab-btn active" id="close-settings-done-btn" style="padding:8px 20px;font-size:13px">Done</button>
+      </div>
+    </dialog>
+
+    <!-- 2. Session History Dialog -->
+    <dialog id="history-dialog" class="modal-dialog modal-md">
+      <div class="modal-header">
+        <div>
+          <h2 style="font-size:18px;font-weight:600;color:var(--text-primary)">Session History</h2>
+          <p style="font-size:13px;color:var(--text-secondary)">Record of your translated signs and spoken messages</p>
+        </div>
+        <button type="button" class="btn-icon" id="close-history-btn" aria-label="Close dialog">✕</button>
+      </div>
+
+      <div class="modal-scroll-body" id="history-list"></div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-icon" id="clear-history-btn" style="color:#f87171">Clear History</button>
+      </div>
+    </dialog>
+
+    <!-- 3. Sign Language Encyclopedia Dialog -->
+    <dialog id="encyclopedia-dialog" class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <div>
+          <h2 style="font-size:19px;font-weight:600;color:var(--text-primary)">Total Sign Language Encyclopedia</h2>
+          <p style="font-size:13px;color:var(--text-secondary)">
+            Complete reference for Indian Sign Language (ISL) & ASL: A–Z fingerspelling, numbers, and conversational signs
+          </p>
+        </div>
+        <button type="button" class="btn-icon" id="close-encyclopedia-btn" aria-label="Close dialog">✕</button>
+      </div>
+
+      <div class="enc-search-bar">
+        <input type="text" id="encyclopedia-search" placeholder="Search signs by name, phrase, English or Hindi meaning..." class="ui-select" style="width:100%;padding:8px 12px;font-size:13px">
+      </div>
+
+      <div class="enc-grid" id="encyclopedia-grid"></div>
+    </dialog>
+
+    <!-- Main Module Script -->
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>
+
